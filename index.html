@@ -57,9 +57,9 @@
 
     function createCamera() {
       // Create a Camera
-      const fov = 15; // AKA Field of View  
+      const fov = 150; // AKA Field of View  
       const aspect = width / height;
-      const near = 0.1; // the near clipping plane
+      const near = 0.00001; // the near clipping plane
       const far = 1000; // the far clipping plane
 
       camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
@@ -109,7 +109,7 @@
       const group = new THREE.Group();
 
       [THREE.BackSide, THREE.FrontSide].forEach(side => {
-        const meshes = [...new Array(8)]
+        const meshes = [...new Array(20000)]
           .map((d, i) => i)
           .map((d, i) => {
             const materials = createMaterials({
@@ -123,11 +123,14 @@
             return mesh;
           })
 
-        const unit = 2;
+        const unit1 = 2;
 
 
         meshes.forEach((m, i) => {
-          const j = i + 1;
+          const loop = (Math.floor(i / 8) + 1);
+          const id = i % 8;
+          const unit = unit1 + loop * 2;
+          const j = id + 1;
           const m1 = j % 2 ? 1 : -1;
           const m2 = j % 4 < 2 ? 1 : -1;
           const m3 = j <= 4 ? 1 : -1;
