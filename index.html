@@ -61,7 +61,7 @@
 
     function createCamera() {
       // Create a Camera
-      const fov = 150; // AKA Field of View  
+      const fov = 50; // AKA Field of View  
       const aspect = width / height;
       const near = 0.00001; // the near clipping plane
       const far = 1000; // the far clipping plane
@@ -113,7 +113,7 @@
       const group = new THREE.Group();
 
       [THREE.BackSide, THREE.FrontSide].forEach(side => {
-        const meshes = [...new Array(20000)]
+        const meshes = [...new Array(10000)]
           .map((d, i) => i)
           .map((d, i) => {
             const materials = createMaterials({
@@ -138,7 +138,7 @@
           const m1 = j % 2 ? 1 : -1;
           const m2 = j % 4 < 2 ? 1 : -1;
           const m3 = j <= 4 ? 1 : -1;
-          m.position.set(unit * m3, unit * m2, unit * m1)
+          m.position.set(unit * m3 * Math.random(), unit * m2 * Math.random(), unit * m1 * Math.random())
           group.add(m)
         })
       })
@@ -185,9 +185,18 @@
       renderer.render(scene, camera);
     }
 
+    let sum = 0.001;
     let additions = 0.001;
     setInterval(d => {
-      additions += 0.005
+      additions += sum;
+      if (additions > 0.2) {
+        sum = -sum;
+      }
+      if (additions < -0.21) {
+        sum = -sum;
+      }
+      console.log(additions)
+
     }, 100)
 
     function update() {
