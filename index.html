@@ -1,0 +1,220 @@
+<html>
+
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/threejs/r76/three.min.js"></script>
+</head>
+
+<body>
+  <div>Ok, heating up your device, so you can warm your hands. Don't close window. </div>
+  <!-- <div>fps: <span id="fps"></span></div> -->
+  <canvas id="c"></canvas>
+
+  <script type="module">
+    // const fpsElem = document.querySelector("#fps");
+    // let then = 0;
+    // function render(now) {
+    //   now *= 0.001; // convert to seconds
+    //   const deltaTime = now - then; // compute time since last frame
+    //   then = now; // remember time for next frame
+    //   const fps = 1 / deltaTime; // compute frames per second
+    //   fpsElem.textContent = fps.toFixed(1); // update fps display
+
+    //   requestAnimationFrame(render);
+    // }
+    // requestAnimationFrame(render);
+
+    import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r112/build/three.module.js';
+    import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r112/examples/jsm/controls/OrbitControls.js';
+    const canvas = document.querySelector('#c');
+    const width = window.innerWidth;
+
+    const colors = [
+      '#38F8E6',
+      '#00DDDC',
+      '#00A8CB',
+      '#4086B9',
+      '#6C3A5A',
+      '#FF9695',
+      '#FF6700',
+      '#FBB600',
+    ]
+
+
+    let camera,
+      renderer,
+      scene,
+      controls,
+      cubeMesh,
+      cubeGroup,
+      folder,
+      renderOnDemand = true,
+      renderRequested = false,
+      mainLight,
+      material,
+      height = window.innerHeight - 30;
+
+    init();
+
+    function createCamera() {
+      // Create a Camera
+      const fov = 15; // AKA Field of View  
+      const aspect = width / height;
+      const near = 0.1; // the near clipping plane
+      const far = 1000; // the far clipping plane
+
+      camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+      camera.position.set(-28, 12, -26);
+
+    }
+    function createLights() {
+      // Create a directional light
+      const ambientLight = new THREE.HemisphereLight(0xddeeff, 0x202020, 9);
+      mainLight = new THREE.DirectionalLight(0xffffff, 3.0);
+      scene.add(ambientLight);
+
+      // move the light back and up a bit
+      mainLight.position.set(10, 10, 10);
+
+      // remember to add the light to the scene
+      scene.add(ambientLight, mainLight);
+    }
+    function createMaterials(params) {
+      const color = params && params.color || 0xff3333;
+      const side = params && params.side || THREE.DoubleSide;
+
+      const cube = new THREE.MeshStandardMaterial({
+        color: color,
+        flatShading: true,
+        opacity: 0.5,
+        transparent: true,
+        side: side
+      })
+      cube.color.convertSRGBToLinear();
+      material = {
+        cube
+      }
+      return material;
+    }
+
+    function createGeometries() {
+      const cube = new THREE.BoxGeometry(2.5, 2.5, 2.5);
+      return {
+        cube
+      }
+    }
+
+    function createMeshes() {
+
+      const geometries = createGeometries();
+      const group = new THREE.Group();
+
+      [THREE.BackSide, THREE.FrontSide].forEach(side => {
+        const meshes = [...new Array(8)]
+          .map((d, i) => i)
+          .map((d, i) => {
+            const materials = createMaterials({
+              color: colors[i],
+              side: side
+            });
+            const mesh = new THREE.Mesh(
+              geometries.cube,
+              materials.cube
+            );
+            return mesh;
+          })
+
+        const unit = 2;
+
+
+        meshes.forEach((m, i) => {
+          const j = i + 1;
+          const m1 = j % 2 ? 1 : -1;
+          const m2 = j % 4 < 2 ? 1 : -1;
+          const m3 = j <= 4 ? 1 : -1;
+          m.position.set(unit * m3, unit * m2, unit * m1)
+          group.add(m)
+        })
+      })
+
+
+
+      cubeGroup = group;
+
+      // Add the mesh to the scene
+      scene.add(group);
+    }
+
+    function createRenderer() {
+      // create the renderer
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        canvas
+      });
+
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.gammaFactor = 2.2;
+      renderer.gammaOutput = true;
+      renderer.physicallyCorrectLights = true;
+    }
+
+    function init() {
+      // create a Scene
+      scene = new THREE.Scene();
+
+      // Set the background color
+      scene.background = new THREE.Color('#FFFFFF');
+
+      createCamera();
+      createLights();
+      createMeshes();
+      createRenderer();
+
+      controls = new OrbitControls(camera, renderer.domElement);
+      //invalidation.then(() => (controls.dispose(), renderer.dispose()));
+    }
+
+    function render() {
+      renderer.render(scene, camera);
+    }
+
+    let additions = 0.001;
+    setInterval(d => {
+      additions += 0.005
+    }, 100)
+
+    function update() {
+      /*********** PUT ANIMATION LOGIC HERE **********/
+      //cubeGroup.rotation.x += 0.01;
+      cubeGroup.rotation.y += (0.01 + additions);
+      //cubeGroup.rotation.z += 0.01;
+      /***********************************************/
+    }
+
+    function onWindowResize() {
+      camera.aspect = width / height;;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height)
+    }
+
+    window.addEventListener('resize', onWindowResize)
+
+    function animationLoop() {
+      update();
+      render();
+      controls.update()
+    }
+
+
+    controls.update()
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.rotateSpeed = 0.5;
+    renderer.setAnimationLoop(animationLoop)
+
+
+
+  </script>
+</body>
+
+</html>
